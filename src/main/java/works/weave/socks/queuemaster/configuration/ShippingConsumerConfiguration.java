@@ -7,21 +7,25 @@ import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import works.weave.socks.queuemaster.ShippingTaskHandler;
 
 @Configuration
-public class ShippingConsumerConfiguration extends RabbitMqConfiguration
+public class ShippingConsumerConfiguration 
 {
 	protected final String queueName = "shipping-task";
+
+	@Autowired
+	private RabbitMqConfiguration rabbitMqConfig;
 
     @Autowired
     private ShippingTaskHandler shippingTaskHandler;
 
 	@Bean
 	public RabbitTemplate rabbitTemplate() {
-		RabbitTemplate template = new RabbitTemplate(connectionFactory());
-		template.setQueue(this.queueName);
-        template.setMessageConverter(jsonMessageConverter());
+		RabbitTemplate template = new RabbitTemplate(rabbitMqConfig.connectionFactory());
+		template.setDefaultReceiveQueue(this.queueName);
+        template.setMessageConverter(rabbitMqConfig.jsonMessageConverter());
 		return template;
 	}
 
@@ -33,7 +37,7 @@ public class ShippingConsumerConfiguration extends RabbitMqConfiguration
 	@Bean
 	public SimpleMessageListenerContainer listenerContainer() {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-		container.setConnectionFactory(connectionFactory());
+		container.setConnectionFactory(rabbitMqConfig.connectionFactory());
 		container.setQueueNames(this.queueName);
 		container.setMessageListener(messageListenerAdapter());
 
@@ -42,6 +46,6 @@ public class ShippingConsumerConfiguration extends RabbitMqConfiguration
 
     @Bean
     public MessageListenerAdapter messageListenerAdapter() {
-        return new MessageListenerAdapter(shippingTaskHandler, jsonMessageConverter());
+        return new MessageListenerAdapter(shippingTaskHandler, rabbitMqConfig.jsonMessageConverter());
     }
 }

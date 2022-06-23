@@ -5,6 +5,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,8 @@ public class DockerSpawner {
 
 	public void init() {
 		if (dc == null) {
-			DockerClientConfig.DockerClientConfigBuilder builder = DockerClientConfig.createDefaultConfigBuilder();
+			DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
-            DockerClientConfig config = builder.build();
             dc = DockerClientBuilder.getInstance(config).build();
 
             dc.pullImageCmd(imageName).withTag(imageVersion).exec(new PullImageResultCallback()).awaitSuccess();
